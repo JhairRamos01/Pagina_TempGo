@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TempGo - Monitoreo Inteligente de Conservación Térmica</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="light-theme">
+
+  <!-- ENCABEZADO PRINCIPAL -->
+  <header class="main-header">
+    <button id="btn-back" class="nav-back hidden" onclick="navigateBack()" aria-label="Volver">←</button>
+    
+    <!-- Logo TempGo Clicable -->
+    <div class="logo" onclick="handleLogoClick()" title="Ir al Inicio / Login" style="cursor: pointer;">
+      Temp<span>Go</span>
+    </div>
+
+    <div class="header-right-actions">
+      <!-- Badge de Código de Dispositivo -->
+      <div id="header-code" class="device-code-badge hidden">
+        COD: <span class="active-code">9NL47</span>
+        <button type="button" class="btn-secondary-sm" onclick="copyCode()">COPIAR</button>
+      </div>
+
+      <!-- Perfil de Usuario en Header (Post-Login) -->
+      <div id="header-user-profile" class="user-profile-badge hidden">
+        <img id="user-header-avatar" src="https://ui-avatars.com/api/?name=Usuario&background=00a8e8&color=fff" alt="Foto Perfil" class="user-avatar-img">
+        <span id="user-header-name" class="user-name-text">Usuario</span>
+      </div>
+
+      <!-- Botón de Cerrar Sesión (Post-Login) -->
+      <button type="button" id="btn-logout" class="btn-logout-header hidden" onclick="handleLogout()" title="Cerrar Sesión">
+        <span class="logout-icon">🚪</span>
+        <span class="logout-text">Cerrar Sesión</span>
+      </button>
+
+      <!-- Botón Modo Claro/Oscuro -->
+      <button type="button" id="header-theme-toggle" class="theme-toggle-header" onclick="toggleTheme()" title="Cambiar Modo Claro/Oscuro">
+        <span id="theme-icon">🌙</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- PANTALLA 1: LOGIN Y REGISTRO COMPLETO CON AVATAR -->
+    <section id="screen-login" class="screen active">
+      <div class="glass-login-wrapper">
+        <div class="glass-card animated-glass">
+          
+          <!-- Avatar Icon Preview Top -->
+          <div class="avatar-container">
+            <div class="avatar-circle">
+              <img id="login-avatar-preview" src="https://ui-avatars.com/api/?name=TempGo&background=00a8e8&color=fff" alt="Avatar Preview" class="avatar-img-preview">
+            </div>
+          </div>
+
+          <!-- Pestañas Toggle: Iniciar Sesión / Registrarse -->
+          <div class="auth-toggle-buttons">
+            <button type="button" id="tab-login" class="auth-tab active" onclick="switchAuthMode('login')">Iniciar Sesión</button>
+            <button type="button" id="tab-register" class="auth-tab" onclick="switchAuthMode('register')">Registrarse</button>
+          </div>
+
+          <!-- Formulario 1: Iniciar Sesión -->
+          <form id="login-form" class="auth-form active-form" onsubmit="return handleLogin(event)">
+            <div class="input-glass-group">
+              <span class="input-icon">✉️</span>
+              <input type="email" id="input-email" placeholder="Correo electrónico" required value="usuario@tempgo.com">
+            </div>
+
+            <div class="input-glass-group">
+              <span class="input-icon">🔒</span>
+              <input type="password" id="input-password" placeholder="Contraseña" required value="123456">
+            </div>
+
+            <div class="form-options">
+              <label class="checkbox-label">
+                <input type="checkbox" checked> Recordarme
+              </label>
+              <a href="#" onclick="alert('Instrucciones enviadas a tu correo'); return false;" class="forgot-link">¿Olvidaste tu contraseña?</a>
+            </div>
+
+            <div id="login-status-msg" class="status-message hidden"></div>
+
+            <button type="submit" id="btn-login-submit" class="btn-glow btn-full">INGRESAR</button>
+          </form>
+
+          <!-- Formulario 2: Registrarse con Nombre y Foto de Perfil -->
+          <form id="register-form" class="auth-form hidden-form" onsubmit="return handleRegister(event)">
+            <div class="input-glass-group">
+              <span class="input-icon">👤</span>
+              <input type="text" id="reg-name" placeholder="Nombre completo o usuario" required>
+            </div>
+
+            <div class="input-glass-group">
+              <span class="input-icon">✉️</span>
+              <input type="email" id="reg-email" placeholder="Correo electrónico" required>
+            </div>
+
+            <div class="input-glass-group">
+              <span class="input-icon">🔒</span>
+              <input type="password" id="reg-password" placeholder="Crear contraseña" required>
+            </div>
+
+            <!-- Cargar Foto de Perfil -->
+            <div class="form-group profile-upload-group">
+              <label for="reg-avatar-file" class="avatar-upload-label">
+                <span class="icon">📷</span> Seleccionar Foto de Perfil:
+              </label>
+              <input type="file" id="reg-avatar-file" accept="image/*" onchange="previewRegisterAvatar(event)" class="file-input-custom">
+            </div>
+
+            <div id="register-status-msg" class="status-message hidden"></div>
+
+            <button type="submit" id="btn-register-submit" class="btn-glow btn-full">CREAR CUENTA Y ACCEDER</button>
+          </form>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- PANTALLA 2: INGRESO DEL ALIMENTO -->
+    <section id="screen-food-entry" class="screen hidden">
+      <div class="entry-layout">
+        
+        <!-- Tarjeta de Referencia de Categorías -->
+        <div class="card categories-info-card">
+          <h3>CATEGORÍAS Y RANGOS IDEALES</h3>
+          <ul class="category-ranges-list">
+            <li>
+              <span class="cat-icon">🐟</span>
+              <div>
+                <strong>Refrigerados</strong>
+                <p>0°C a 4°C</p>
+              </div>
+            </li>
+            <li>
+              <span class="cat-icon">🍎</span>
+              <div>
+                <strong>Frutas y verduras</strong>
+                <p>8°C a 12°C</p>
+              </div>
+            </li>
+            <li>
+              <span class="cat-icon">🧊</span>
+              <div>
+                <strong>Congelados</strong>
+                <p>-22°C a -16°C</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Formulario de Registro -->
+        <div class="card form-card max-width-card">
+          <div class="form-header">
+            <span class="icon-title">📦</span>
+            <h2>2. Ingreso del Alimento</h2>
+          </div>
+          
+          <form id="food-form" onsubmit="return submitFoodData(event)">
+            <div class="form-group">
+              <label for="input-alimento">Alimento:</label>
+              <input type="text" id="input-alimento" placeholder="Ej. Pollo, Atún, Fresa" required value="Fresa">
+            </div>
+
+            <div class="form-group">
+              <label for="input-temperatura">Temperatura (°C):</label>
+              <input type="number" id="input-temperatura" placeholder="Ej. 10" required value="10">
+            </div>
+
+            <!-- Barra Deslizante de Rango (-40°C a +40°C) -->
+            <div class="form-group">
+              <label for="input-rango">Rango de Temperatura (-40°C a +40°C):</label>
+              <div class="slider-container">
+                <input type="range" id="input-rango" min="-40" max="40" value="2" step="1" oninput="updateRangoDisplay(this.value)">
+                <span id="rango-badge" class="slider-value">+2°C</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="input-fecha">Fecha:</label>
+              <input type="date" id="input-fecha" required>
+            </div>
+
+            <div id="api-status-msg" class="status-message hidden"></div>
+
+            <button type="submit" id="btn-submit-food" class="btn-primary btn-full margin-top">
+              <span id="btn-text">INGRESAR</span>
+              <span id="btn-spinner" class="spinner hidden"></span>
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- PANTALLA 3: INTERFACES DEDICADAS POR TIPO DE ALIMENTO -->
+    <section id="screen-dashboard" class="screen hidden">
+      
+      <!-- Barra de Pestañas Navegación por Categoría -->
+      <nav class="product-tabs-bar card">
+        <button type="button" id="tab-prod-refrigerados" class="prod-tab-btn active" onclick="switchProductTab('refrigerados')">
+          <span>🐟</span> REFRIGERADOS
+        </button>
+        <button type="button" id="tab-prod-congelados" class="prod-tab-btn" onclick="switchProductTab('congelados')">
+          <span>🧊</span> CONGELADOS
+        </button>
+        <button type="button" id="tab-prod-frutas" class="prod-tab-btn" onclick="switchProductTab('frutas')">
+          <span>🍎</span> FRUTAS Y VERDURAS
+        </button>
+      </nav>
+
+      <!-- Panel Unificado Activo -->
+      <div id="unified-product-view" class="dashboard-grid fade-in">
+        
+        <!-- Columna Izquierda -->
+        <div class="dash-col dash-left">
+          
+          <div class="card dash-card">
+            <h3>ENERGÍA</h3>
+            <div class="dash-row">
+              <span class="power-icon-large">⚡</span>
+              <div class="dash-indicators">
+                <span class="ind-line active-status">ENCENDIDO <span class="dot yellow"></span></span>
+                <span class="ind-line muted">APAGADO <span class="dot grey"></span></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card dash-card">
+            <h3>ESTADO CONEXIÓN</h3>
+            <div class="dash-row">
+              <span class="signal-icon">📶</span>
+              <div class="dash-indicators">
+                <span id="st-optimo" class="ind-line active-status">ÓPTIMO <span class="dot yellow"></span></span>
+                <span id="st-alerta" class="ind-line muted">ALERTA <span class="dot grey"></span></span>
+                <span id="st-peligro" class="ind-line muted">PELIGRO <span class="dot grey"></span></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card dash-card">
+            <h3>TEMPERATURA EN VIVO</h3>
+            <div class="dash-row temp-live-row">
+              <span class="therm-icon">🌡️</span>
+              <span id="live-temp-val" class="live-temp-text">10°C</span>
+            </div>
+          </div>
+
+          <div class="card dash-card registered-food-card">
+            <h3>ALIMENTO REGISTRADO EN BD</h3>
+            <div class="registered-food-badge">
+              <span class="food-icon-lg" id="dash-food-icon">🍓</span>
+              <div>
+                <h4 id="dash-food-examples">Fresa</h4>
+                <p id="dash-food-detail">Sincronizado vía Web Service</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Columna Derecha -->
+        <div class="dash-col dash-right">
+          
+          <div class="card dash-card control-card">
+            <div class="control-header">
+              <h3>CONTROL DE RANGO TÉRMICO</h3>
+              <span id="ideal-range-badge" class="ideal-badge">Ideal: 8°C a 12°C</span>
+            </div>
+
+            <div class="range-bar-container">
+              <span class="range-min" id="range-min-lbl">0°C</span>
+              <div class="range-bar">
+                <div class="range-fill" id="range-fill-bar"></div>
+              </div>
+              <span class="range-max" id="range-max-lbl">20°C</span>
+            </div>
+
+            <div class="range-legend">
+              <span class="leg-item"><small class="dot dark-blue"></small> &lt; <span id="leg-min-val">7°C</span> 🥶</span>
+              <span class="leg-item"><small class="dot light-blue"></small> <span id="leg-ideal-val">8 → 12°C</span> 👍</span>
+              <span class="leg-item"><small class="dot orange"></small> &gt; <span id="leg-max-val">13°C</span> 🔥</span>
+            </div>
+          </div>
+
+          <div class="dash-bottom-row">
+            
+            <div class="card dash-card alarm-card">
+              <h3>SISTEMA DE ALARMA</h3>
+              <div class="alarm-circle pulse-animation" id="alarm-circle-box">
+                <span id="alarm-count">0</span>
+                <span class="bell-icon">🔔</span>
+              </div>
+              <p id="alarm-status-text">PRODUCTO EN RANGO SEGURO</p>
+            </div>
+
+            <div class="card dash-card product-badge-card">
+              <h3>INTERFAZ DEDICADA</h3>
+              <div class="selected-product-info">
+                <div>
+                  <h4 id="dash-product-name">FRUTAS Y VERDURAS</h4>
+                  <p id="dash-temp-range-text">Monitoreo Térmico Inteligente</p>
+                </div>
+                <img id="dash-product-img" src="img/imagen3.jpeg" alt="Producto Seleccionado">
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
